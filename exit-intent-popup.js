@@ -24,20 +24,27 @@ document.addEventListener("DOMContentLoaded", function () {
         popup.style.display = "none"; // Ensure it never appears
         return;
     }
-   // Check if popup has already been closed in this session
+
+    // Check if popup has already been closed in this session
     if (sessionStorage.getItem("popupClosed")) {
         popup.style.display = "none";
+        return; // Prevent any further execution
     }
-    // Exit intent detection (Desktop only)
+
+    // Exit intent detection (Desktop only) - **Updated**
     document.addEventListener("mouseleave", function (event) {
-        if (event.clientY <= 0) {
+        if (event.clientY <= 0 && !sessionStorage.getItem("popupClosed")) {
             showPopup();
         }
     });
 
     // Show popup after delay on mobile
     if (/Mobi|Android/i.test(navigator.userAgent)) {
-        setTimeout(showPopup, 10000); // Show after 10 seconds on mobile
+        setTimeout(() => {
+            if (!sessionStorage.getItem("popupClosed")) {
+                showPopup();
+            }
+        }, 10000); // Show after 10 seconds on mobile
     }
 
     // Close popup when button is clicked
@@ -45,9 +52,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Listen for the confirm_appointment event in the dataLayer
     window.dataLayer = window.dataLayer || [];
+    const originalPush = window.dataLayer.push;
+    
     window.dataLayer.push = function(event) {
-        // Call the original dataLayer.push method
-        Array.prototype.push.apply(this, arguments);
+        originalPush.apply(this, arguments); // Call the original push function
         
         // If confirm_appointment is detected, store a flag in localStorage
         if (event.event === "confirm_appointment") {
