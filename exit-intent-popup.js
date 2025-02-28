@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Function to show popup
     function showPopup() {
-        if (!sessionStorage.getItem("popupClosed")) {
+        if (!sessionStorage.getItem("popupClosed") && !localStorage.getItem("bookingCompleted")) {
             popup.style.display = "flex";
             popup.style.opacity = "1"; // Smooth fade-in
         }
@@ -19,9 +19,10 @@ document.addEventListener("DOMContentLoaded", function () {
         sessionStorage.setItem("popupClosed", "true");
     }
 
-    // Check if popup has already been closed in this session
-    if (sessionStorage.getItem("popupClosed")) {
-        popup.style.display = "none";
+    // Check if booking is completed
+    if (localStorage.getItem("bookingCompleted")) {
+        popup.style.display = "none"; // Ensure it never appears
+        return;
     }
 
     // Exit intent detection (Desktop only)
@@ -38,4 +39,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Close popup when button is clicked
     closeBtn.addEventListener("click", closePopup);
+
+    // Listen for the confirm_appointment event in the dataLayer
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push = function(event) {
+        // Call the original dataLayer.push method
+        Array.prototype.push.apply(this, arguments);
+        
+        // If confirm_appointment is detected, store a flag in localStorage
+        if (event.event === "confirm_appointment") {
+            localStorage.setItem("bookingCompleted", "true");
+            sessionStorage.setItem("popupClosed", "true"); // Also close for the current session
+            popup.style.display = "none"; // Ensure popup is hidden
+        }
+    };
 });
