@@ -24,7 +24,10 @@ document.addEventListener("DOMContentLoaded", function () {
         popup.style.display = "none"; // Ensure it never appears
         return;
     }
-
+   // Check if popup has already been closed in this session
+    if (sessionStorage.getItem("popupClosed")) {
+        popup.style.display = "none";
+    }
     // Exit intent detection (Desktop only)
     document.addEventListener("mouseleave", function (event) {
         if (event.clientY <= 0) {
