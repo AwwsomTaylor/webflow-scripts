@@ -1,51 +1,41 @@
 document.addEventListener("DOMContentLoaded", function () {
-    let hasPopupShown = getCookie("exitPopupShown");
-    let hasPopupClosed = sessionStorage.getItem("exitPopupClosed");
+    const popup = document.getElementById("exit-popup");
+    const closeBtn = document.getElementById("close-popup");
 
+    // Function to show popup
     function showPopup() {
-        if (!hasPopupShown && !hasPopupClosed) {
-            document.getElementById("exit-popup").style.display = "flex";
-            setCookie("exitPopupShown", "true", 7);
+        if (!sessionStorage.getItem("popupClosed")) {
+            popup.style.display = "flex";
+            popup.style.opacity = "1"; // Smooth fade-in
         }
     }
 
-    function setCookie(name, value, days) {
-        let expires = "";
-        if (days) {
-            let date = new Date();
-            date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-            expires = "; expires=" + date.toUTCString();
-        }
-        document.cookie = name + "=" + value + "; path=/" + expires;
+    // Function to close popup and store session
+    function closePopup() {
+        popup.style.opacity = "0";
+        setTimeout(() => {
+            popup.style.display = "none"; // Hide popup
+        }, 300); // Smooth fade-out
+        sessionStorage.setItem("popupClosed", "true");
     }
 
-    function getCookie(name) {
-        let nameEQ = name + "=";
-        let cookies = document.cookie.split(";");
-        for (let i = 0; i < cookies.length; i++) {
-            let cookie = cookies[i].trim();
-            if (cookie.indexOf(nameEQ) == 0) return cookie.substring(nameEQ.length, cookie.length);
-        }
-        return null;
+    // Check if popup has already been closed in this session
+    if (sessionStorage.getItem("popupClosed")) {
+        popup.style.display = "none";
     }
 
+    // Exit intent detection (Desktop only)
     document.addEventListener("mouseleave", function (event) {
         if (event.clientY <= 0) {
             showPopup();
         }
     });
 
-    let lastScrollTop = window.scrollY;
-    window.addEventListener("scroll", function () {
-        let currentScroll = window.scrollY;
-        if (!hasPopupShown && !hasPopupClosed && currentScroll < lastScrollTop - 50) {
-            showPopup();
-        }
-        lastScrollTop = currentScroll;
-    });
+    // Show popup after delay on mobile
+    if (/Mobi|Android/i.test(navigator.userAgent)) {
+        setTimeout(showPopup, 10000); // Show after 10 seconds on mobile
+    }
 
-    document.getElementById("close-popup").addEventListener("click", function () {
-        document.getElementById("exit-popup").style.display = "none";
-        sessionStorage.setItem("exitPopupClosed", "true");
-    });
+    // Close popup when button is clicked
+    closeBtn.addEventListener("click", closePopup);
 });
